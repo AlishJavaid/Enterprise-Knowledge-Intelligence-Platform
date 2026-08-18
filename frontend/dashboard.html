@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Athenaeum — Enterprise Knowledge Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,560;0,9..144,680;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ========== Reset & Variables ========== */
+    :root {
+      --ink: #0a0d14; --ink-2: #12161f; --ink-3: #1a1f2e;
+      --panel: rgba(26,31,46,0.7); --panel-solid: #1a1f2e; --panel-2: rgba(33,40,65,0.8);
+      --glass: rgba(255,255,255,0.03); --glass-border: rgba(255,255,255,0.08);
+      --rule: rgba(255,255,255,0.06); --rule-strong: rgba(255,255,255,0.12);
+      --parchment: #eae4d3; --parchment-dim: #c4bfb0;
+      --muted: #6b7280; --muted-light: #8b93a9;
+      --brass: #d4af37; --brass-light: #f4d03f; --brass-dim: #9a7d2e;
+      --brass-glow: rgba(212,175,55,0.2); --brass-glow-strong: rgba(212,175,55,0.4);
+      --teal: #4fd1c5; --teal-glow: rgba(79,209,197,0.2);
+      --purple: #a78bfa; --purple-glow: rgba(167,139,250,0.2);
+      --rose: #fb7185; --rose-glow: rgba(251,113,133,0.2);
+      --emerald: #34d399; --emerald-glow: rgba(52,211,153,0.2);
+      --danger: #ef4444; --danger-glow: rgba(239,68,68,0.2);
+      --focus: #fbbf24;
+      --radius-sm: 4px; --radius: 8px; --radius-lg: 12px;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+      --shadow: 0 4px 16px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+      --shadow-glow: 0 0 20px var(--brass-glow);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: radial-gradient(ellipse 1400px 800px at 100% 0%, rgba(212,175,55,0.08), transparent 50%),
+                  radial-gradient(ellipse 1200px 700px at 0% 100%, rgba(79,209,197,0.06), transparent 50%),
+                  radial-gradient(ellipse 1000px 600px at 50% 50%, rgba(167,139,250,0.04), transparent 50%),
+                  var(--ink);
+      color: var(--parchment);
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    ::selection { background: var(--brass); color: var(--ink); }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--ink-2); }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--brass-dim), var(--brass)); border-radius: 5px; border: 2px solid var(--ink-2); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--brass); }
+    h1, h2, h3, h4 {
+      font-family: 'Fraunces', serif;
+      font-weight: 560;
+      letter-spacing: -0.02em;
+      color: var(--parchment);
+    }
+    .label {
+      font-family: 'IBM Plex Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 10px;
+      color: var(--muted-light);
+      font-weight: 500;
+    }
+    /* ---------- Animations ---------- */
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 20px var(--brass-glow); }
+      50% { box-shadow: 0 0 30px var(--brass-glow-strong); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
+    .card, .result, .command-item, .conversation-item, nav button {
+      animation: riseIn 0.6s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    nav button:nth-child(1) { animation-delay: 0.05s; }
+    nav button:nth-child(2) { animation-delay: 0.1s; }
+    nav button:nth-child(3) { animation-delay: 0.15s; }
+    nav button:nth-child(4) { animation-delay: 0.2s; }
+    nav button:nth-child(5) { animation-delay: 0.25s; }
+    nav button:nth-child(6) { animation-delay: 0.3s; }
+
+    /* ---------- Layout ---------- */
+    .shell { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+    .rail {
+      width: 260px; flex: none;
+      background: linear-gradient(180deg, rgba(26,31,46,0.95) 0%, rgba(18,22,31,0.98) 100%);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--rule);
+      display: flex; flex-direction: column;
+      padding: 24px 0;
+      position: sticky; top: 0; height: 100vh;
+      z-index: 10;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+    }
+    .mark {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 24px 24px 24px;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 20px;
+    }
+    .mark .glyph {
+      font-family: 'Fraunces', serif; font-weight: 680; font-size: 24px;
+      color: var(--brass);
+      background: linear-gradient(135deg, var(--brass) 0%, var(--brass-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      border: 2px solid var(--brass-dim);
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex: none;
+      box-shadow: 0 0 0 4px var(--brass-glow), 0 4px 12px rgba(0,0,0,0.3);
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+    .mark h1 { font-size: 18px; line-height: 1.2; background: linear-gradient(135deg, var(--parchment) 0%, var(--parchment-dim) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .mark .sub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; font-weight: 500; }
+    nav { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; flex: 1; overflow-y: auto; }
+    nav button {
+      all: unset; cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      color: var(--muted-light);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      display: flex; align-items: center; gap: 12px;
+      border-left: 3px solid transparent;
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      position: relative;
+      overflow: hidden;
+    }
+    nav button::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+    nav button:hover::before { transform: translateX(100%); }
+    nav button:hover { background: rgba(255,255,255,0.04); color: var(--parchment); transform: translateX(4px); }
+    nav button.active {
+      color: var(--brass);
+      background: linear-gradient(90deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04));
+      border-left-color: var(--brass);
+      box-shadow: inset 0 0 0 1px rgba(212,175,55,0.2), 0 0 20px rgba(212,175,55,0.1);
+    }
+    #user-badge {
+      margin: 16px 12px 0 12px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--rule);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--muted-light);
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    #user-badge:not(:empty)::before {
+      content: ""; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 12px var(--teal-glow);
+      animation: pulseGlow 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    .logout-btn {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+      padding: 4px 8px; border-radius: var(--radius-sm); transition: all 0.2s;
+    }
+    .logout-btn:hover { color: var(--rose); background: rgba(251,113,133,0.1); }
+
+    /* ---------- Main ---------- */
+    main { flex: 1; padding: 40px 48px 80px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+    .kicker { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .kicker .rule { height: 1px; flex: 1; background: linear-gradient(90deg, var(--rule-strong), transparent); }
+    .kicker .note { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.08em; font-weight: 500; }
+
+    /* ---------- Cards ---------- */
+    .card {
+      background: var(--panel);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin-bottom: 24px;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    }
+    .card:hover { border-color: rgba(255,255,255,0.12); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .card h3 { font-size: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+
+    /* ---------- Auth Card ---------- */
+    #auth-card { max-width: 420px; margin: 10vh auto; background: var(--panel-2); box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05); }
+    #auth-card::before {
+      content: "ACCESS"; position: absolute; top: -10px; left: 24px;
+      background: linear-gradient(135deg, var(--brass) 0%, var(--brass-light) 100%);
+      color: var(--ink);
+      font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+      letter-spacing: 0.12em; padding: 4px 12px; border-radius: var(--radius-sm);
+      box-shadow: 0 4px 12px rgba(212,175,55,0.3);
+    }
+
+    /* ---------- Forms ---------- */
+    input, textarea, select {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--rule-strong);
+      background: rgba(10,13,20,0.6);
+      color: var(--parchment);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 14px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+      backdrop-filter: blur(10px);
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--brass);
+      box-shadow: 0 0 0 3px var(--brass-glow);
+      background: rgba(10,13,20,0.8);
+    }
+    input[type="file"] { padding: 10px 14px; cursor: pointer; color: var(--muted-light); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+    input[type="file"]::file-selector-button {
+      background: linear-gradient(135deg, var(--panel-2) 0%, var(--panel-solid) 100%);
+      color: var(--parchment);
+      border: 1px solid var(--rule-strong);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      margin-right: 14px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    input[type="file"]::file-selector-button:hover { border-color: var(--brass); color: var(--brass); box-shadow: 0 0 12px var(--brass-glow); }
+
+    /* ---------- Buttons ---------- */
+    .btn {
+      background: linear-gradient(135deg, var(--brass) 0%, var(--brass-light) 100%);
+      color: var(--ink);
+      border: none;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 4px 12px rgba(212,175,55,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::before {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      width: 0; height: 0; border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%,-50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    .btn:hover:not(:disabled)::before { width: 300px; height: 300px; }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(212,175,55,0.3); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.5); }
+    .btn-secondary {
+      background: var(--panel-2);
+      color: var(--parchment);
+      border: 1px solid var(--rule-strong);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--brass); box-shadow: 0 4px 16px rgba(212,175,55,0.15); }
+    .btn-sm { padding: 6px 12px; font-size: 10px; }
+    .btn-danger { background: var(--danger); color: white; box-shadow: 0 4px 12px var(--danger-glow); }
+    .btn-danger:hover:not(:disabled) { box-shadow: 0 8px 20px var(--danger-glow); }
+    .btn-success { background: var(--emerald); color: var(--ink); box-shadow: 0 4px 12px var(--emerald-glow); }
+
+    /* ---------- Tables ---------- */
+    .table-wrap { overflow-x: auto; margin-top: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 12px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-light); border-bottom: 1px solid var(--rule); }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .actions button { background: none; border: none; cursor: pointer; color: var(--muted-light); padding: 4px 8px; border-radius: var(--radius-sm); transition: all 0.2s; font-size: 14px; }
+    .actions button:hover { background: var(--panel); color: var(--parchment); }
+    .actions button.delete:hover { color: var(--danger); background: rgba(239,68,68,0.1); }
+    .actions button.edit:hover { color: var(--brass); background: rgba(212,175,55,0.1); }
+
+    /* ---------- Search Results ---------- */
+    .result {
+      border: 1px solid var(--rule);
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      padding: 18px 20px 18px 24px;
+      margin: 14px 0;
+      border-radius: var(--radius);
+      transition: all 0.3s;
+      border-left: 3px solid var(--brass-dim);
+    }
+    .result:hover { border-left-color: var(--brass); background: var(--panel-2); transform: translateX(4px); box-shadow: var(--shadow); }
+    .result .src {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--brass);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: rgba(212,175,55,0.1);
+      border: 1px solid rgba(212,175,55,0.3);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    .result .content { color: var(--parchment-dim); line-height: 1.7; font-size: 13.5px; }
+    .confidence-meter { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .confidence-bar { flex: 1; height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+    .confidence-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--emerald)); border-radius: 3px; transition: width 0.6s; box-shadow: 0 0 8px var(--teal-glow); }
+    .confidence-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted-light); min-width: 40px; }
+
+    /* ---------- Chat ---------- */
+    #chat-log { min-height: 260px; max-height: 500px; overflow-y: auto; padding: 12px 8px 20px; display: flex; flex-direction: column; gap: 12px; }
+    #chat-log:empty::before {
+      content: "Ask the assistant about your indexed documents. Try: 'Summarize the key points' or 'What are the main rules?'";
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      color: var(--muted);
+      padding: 80px 20px;
+      text-align: center;
+      display: block;
+      line-height: 1.6;
+    }
+    .msg {
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      max-width: 80%;
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 1.6;
+      animation: slideInRight 0.4s cubic-bezier(0.16,1,0.3,1) both;
+      position: relative;
+    }
+    .msg.user {
+      background: linear-gradient(135deg, var(--panel-2) 0%, var(--panel-solid) 100%);
+      border: 1px solid var(--rule-strong);
+      color: var(--parchment);
+      margin-left: auto;
+      border-right: 3px solid var(--teal);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .msg.assistant {
+      background: var(--ink-3);
+      border: 1px solid var(--rule);
+      border-left: 3px solid var(--brass);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .msg small { font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.02em; display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 11px; color: var(--muted-light); flex-wrap: wrap; }
+    .msg .citations { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+    .msg .citation-tag { background: rgba(212,175,55,0.15); color: var(--brass); padding: 2px 8px; border-radius: var(--radius-sm); font-size: 10px; border: 1px solid rgba(212,175,55,0.3); }
+
+    /* ---------- Modals ---------- */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: var(--panel-solid);
+      border: 1px solid var(--rule-strong);
+      border-radius: var(--radius-lg);
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .modal-overlay.open .modal { transform: scale(1); }
+    .modal h2 { font-size: 24px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+    .modal .close-btn { background: none; border: none; color: var(--muted-light); font-size: 24px; cursor: pointer; padding: 8px; border-radius: var(--radius-sm); transition: all 0.2s; }
+    .modal .close-btn:hover { background: var(--panel); color: var(--parchment); }
+
+    /* ---------- Conversations Panel ---------- */
+    .conversations-panel {
+      position: fixed; right: -320px; top: 0;
+      width: 320px; height: 100vh;
+      background: var(--panel-solid);
+      border-left: 1px solid var(--rule);
+      padding: 24px;
+      transition: right 0.4s cubic-bezier(0.4,0,0.2,1);
+      z-index: 100;
+      box-shadow: -8px 0 32px rgba(0,0,0,0.4);
+      overflow-y: auto;
+    }
+    .conversations-panel.open { right: 0; }
+    .conversation-item {
+      padding: 12px 14px;
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .conversation-item:hover { background: var(--panel-2); border-color: var(--brass-dim); transform: translateX(-4px); }
+    .conversation-item.active { border-color: var(--brass); background: rgba(212,175,55,0.08); }
+    .conversation-item .title { font-size: 13px; color: var(--parchment); margin-bottom: 4px; font-weight: 500; }
+    .conversation-item .meta { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+
+    /* ---------- Command Palette ---------- */
+    .command-palette {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0.9);
+      width: 600px; max-width: 90vw;
+      background: var(--panel-solid);
+      border: 1px solid var(--rule-strong);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      z-index: 1000;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      opacity: 0; pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .command-palette.open { opacity: 1; pointer-events: auto; transform: translate(-50%,-50%) scale(1); }
+    .command-palette input { font-size: 16px; padding: 16px 20px; margin-bottom: 16px; }
+    .command-list { max-height: 400px; overflow-y: auto; }
+    .command-item {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .command-item:hover, .command-item.selected { background: var(--panel-2); }
+    .command-item .icon { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--panel); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+    /* ---------- Toast ---------- */
+    .toast-container {
+      position: fixed; top: 24px; right: 24px;
+      z-index: 2000;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .toast {
+      background: var(--panel-solid);
+      border: 1px solid var(--rule-strong);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      min-width: 300px;
+      box-shadow: var(--shadow-lg);
+      animation: slideInRight 0.4s cubic-bezier(0.16,1,0.3,1);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .toast.success { border-left: 3px solid var(--emerald); }
+    .toast.error { border-left: 3px solid var(--rose); }
+    .toast.info { border-left: 3px solid var(--teal); }
+
+    /* ---------- Misc ---------- */
+    .hidden { display: none !important; }
+    .warn { color: var(--rose); padding: 14px 18px; background: rgba(251,113,133,0.08); border: 1px solid rgba(251,113,133,0.2); border-left: 3px solid var(--rose); border-radius: var(--radius); font-size: 13px; display: flex; align-items: center; gap: 10px; }
+    .warn::before { content: "⚠"; font-size: 18px; }
+    .success { color: var(--emerald); padding: 14px 18px; background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); border-left: 3px solid var(--emerald); border-radius: var(--radius); font-size: 13px; display: flex; align-items: center; gap: 10px; }
+    .success::before { content: "✓"; font-size: 18px; font-weight: bold; }
+    .skeleton { background: linear-gradient(90deg, var(--panel) 0%, var(--panel-2) 50%, var(--panel) 100%); background-size: 1000px 100%; animation: shimmer 2s infinite; border-radius: var(--radius); }
+    .fab {
+      position: fixed; bottom: 32px; right: 32px;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--brass) 0%, var(--brass-light) 100%);
+      color: var(--ink);
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 8px 24px rgba(212,175,55,0.4);
+      transition: all 0.3s;
+      z-index: 50;
+    }
+    .fab:hover { transform: scale(1.1) rotate(90deg); box-shadow: 0 12px 32px rgba(212,175,55,0.5); }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1024px) {
+      .shell { flex-direction: column; }
+      .rail { position: relative; height: auto; width: 100%; flex-direction: row; align-items: center; padding: 16px 20px; overflow-x: auto; }
+      .mark { border: none; padding: 0 16px 0 0; margin: 0; flex: none; }
+      nav { flex-direction: row; padding: 0; gap: 8px; overflow-x: auto; }
+      nav button { white-space: nowrap; }
+      nav button:hover { padding-left: 16px; }
+      nav button::after { display: none; }
+      #user-badge { display: none; }
+      main { padding: 28px 24px 60px; }
+      .conversations-panel { display: none; }
+    }
+    @media (max-width: 640px) {
+      main { padding: 20px 16px 40px; }
+      .card { padding: 20px; }
+      .modal { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== SHELL ========== -->
+<div class="shell">
+  <!-- Left Rail -->
+  <aside class="rail">
+    <div class="mark">
+      <div class="glyph">A</div>
+      <div><h1>Athenaeum</h1><div class="sub">Knowledge Intelligence</div></div>
+    </div>
+    <nav>
+      <button data-tab="search" class="active"><i class="fas fa-search"></i> Search</button>
+      <button data-tab="chat"><i class="fas fa-comment-dots"></i> Chat</button>
+      <button data-tab="documents"><i class="fas fa-file-alt"></i> Documents</button>
+      <button data-tab="users"><i class="fas fa-users"></i> Users</button>
+      <button data-tab="conversations"><i class="fas fa-history"></i> Conversations</button>
+      <button data-tab="analytics"><i class="fas fa-chart-bar"></i> Analytics</button>
+    </nav>
+    <span id="user-badge">
+      <span id="user-name"></span>
+      <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </span>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Auth Card -->
+    <div class="card" id="auth-card">
+      <h3><i class="fas fa-lock"></i> Sign in</h3>
+      <!-- ✅ FIELDS ARE NOW EMPTY – user must type their own credentials -->
+      <input id="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+      <button class="btn" id="login-btn" onclick="login()">Enter Archive</button>
+      <div id="auth-status" class="label" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- Search Tab -->
+    <section id="tab-search">
+      <div class="kicker"><span class="label">Search the archive</span><span class="rule"></span><span class="note">01 / 06</span></div>
+      <div class="card">
+        <h3><i class="fas fa-search"></i> Hybrid Search</h3>
+        <input id="q" placeholder="Ask a question about your documents..." onkeydown="if(event.key==='Enter')doSearch()" />
+        <div style="display:flex; gap:12px; margin-bottom:16px;">
+          <button class="btn" onclick="doSearch()">Search</button>
+          <button class="btn btn-secondary" onclick="openCommandPalette()"><i class="fas fa-terminal"></i> ⌘K Commands</button>
+        </div>
+        <div id="search-results"></div>
+      </div>
+    </section>
+
+    <!-- Chat Tab -->
+    <section id="tab-chat" class="hidden">
+      <div class="kicker"><span class="label">Conversational assistant</span><span class="rule"></span><span class="note">02 / 06</span></div>
+      <div class="card">
+        <h3><i class="fas fa-comment-dots"></i> AI Assistant</h3>
+        <div id="chat-log"></div>
+        <div style="display:flex; gap:12px; margin-top:16px;">
+          <input id="chat-input" placeholder="Message the assistant..." onkeydown="if(event.key==='Enter')doChat()" style="flex:1; margin:0;" />
+          <button class="btn" onclick="doChat()"><i class="fas fa-paper-plane"></i> Send</button>
+          <button class="btn btn-secondary" onclick="toggleConversations()"><i class="fas fa-list"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Documents Tab -->
+    <section id="tab-documents" class="hidden">
+      <div class="kicker"><span class="label">Document index</span><span class="rule"></span><span class="note">03 / 06</span></div>
+      <div class="card">
+        <h3><i class="fas fa-upload"></i> Upload & Index</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:12px;">
+          <input type="file" id="file" style="flex:1; min-width:200px;" />
+          <input id="doc-tags" placeholder="Tags (comma-separated)" style="flex:1; min-width:150px;" />
+          <button class="btn" onclick="uploadDoc()"><i class="fas fa-cloud-upload-alt"></i> Upload</button>
+        </div>
+        <pre id="upload-status" style="margin-top:16px;"></pre>
+        <div style="margin-top:20px;">
+          <div style="display:flex; gap:12px; margin-bottom:12px;">
+            <input id="doc-filter" placeholder="Filter by title or tags..." style="flex:1; margin:0;" oninput="filterDocList()" />
+            <button class="btn btn-secondary btn-sm" onclick="loadDocs()"><i class="fas fa-sync-alt"></i> Refresh</button>
+          </div>
+          <div id="doc-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Users Tab -->
+    <section id="tab-users" class="hidden">
+      <div class="kicker"><span class="label">User management</span><span class="rule"></span><span class="note">04 / 06</span></div>
+      <div class="card">
+        <h3><i class="fas fa-user-plus"></i> Manage Users</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+          <input id="new-username" placeholder="Username" style="flex:1; min-width:120px;" />
+          <input id="new-password" type="password" placeholder="Password" style="flex:1; min-width:120px;" />
+          <select id="new-role" style="flex:0.5; min-width:100px;">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button class="btn" onclick="createUser()"><i class="fas fa-plus"></i> Add User</button>
+        </div>
+        <div style="margin-top:12px;">
+          <button class="btn btn-secondary btn-sm" onclick="loadUsers()"><i class="fas fa-sync-alt"></i> Refresh</button>
+          <div id="user-list" style="margin-top:12px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conversations Tab -->
+    <section id="tab-conversations" class="hidden">
+      <div class="kicker"><span class="label">Conversation history</span><span class="rule"></span><span class="note">05 / 06</span></div>
+      <div class="card">
+        <h3><i class="fas fa-history"></i> All Conversations</h3>
+        <div id="conversation-list"></div>
+      </div>
+    </section>
+
+    <!-- Analytics Tab -->
+    <section id="tab-analytics" class="hidden">
+      <div class="kicker"><span class="label">Ledger & metrics</span><span class="rule"></span><span class="note">06 / 06</span></div>
+      <div class="card">
+        <h3><i class="fas fa-chart-bar"></i> Platform Analytics</h3>
+        <div class="grid" id="metrics" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow);"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Conversations Panel (slide-out) -->
+<div class="conversations-panel" id="conversations-panel">
+  <h3><span><i class="fas fa-comments"></i> Conversations</span>
+    <button class="btn btn-secondary" onclick="toggleConversations()" style="padding:6px 12px; font-size:10px;"><i class="fas fa-times"></i></button>
+  </h3>
+  <div id="conversations-list"></div>
+</div>
+
+<!-- Command Palette -->
+<div class="command-palette" id="command-palette">
+  <input id="command-input" placeholder="Type a command or search..." oninput="filterCommands(this.value)" />
+  <div class="command-list" id="command-list"></div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Floating Action Button -->
+<button class="fab" onclick="openCommandPalette()" title="Command Palette (⌘K)"><i class="fas fa-terminal"></i></button>
+
+<!-- Modals -->
+<div class="modal-overlay" id="editDocModal">
+  <div class="modal">
+    <h2>Edit Document <button class="close-btn" onclick="closeModal('editDocModal')"><i class="fas fa-times"></i></button></h2>
+    <input id="edit-doc-title" placeholder="Title" />
+    <input id="edit-doc-tags" placeholder="Tags (comma-separated)" />
+    <select id="edit-doc-status"><option value="active">Active</option><option value="archived">Archived</option></select>
+    <button class="btn" onclick="saveDocEdit()"><i class="fas fa-save"></i> Save Changes</button>
+    <button class="btn btn-secondary" onclick="closeModal('editDocModal')">Cancel</button>
+  </div>
+</div>
+<div class="modal-overlay" id="editUserModal">
+  <div class="modal">
+    <h2>Edit User <button class="close-btn" onclick="closeModal('editUserModal')"><i class="fas fa-times"></i></button></h2>
+    <select id="edit-user-role"><option value="user">User</option><option value="admin">Admin</option></select>
+    <button class="btn" onclick="saveUserEdit()"><i class="fas fa-save"></i> Save Changes</button>
+    <button class="btn btn-secondary" onclick="closeModal('editUserModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- ========== JAVASCRIPT ========== -->
+<script>
+// ==================== GLOBALS ====================
+const $ = id => document.getElementById(id);
+let token = "", currentUser = null;
+let editingDocId = null, editingUserId = null;
+let conversations = [];
+let mockMode = false;
+
+const API_BASE = '/api/v1';
+
+// ==================== TOAST ====================
+function showToast(message, type = 'info') {
+  const container = $('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// ==================== AUTH ====================
+async function login() {
+  const btn = $('login-btn');
+  btn.disabled = true;
+  $('auth-status').textContent = 'Signing in…';
+  try {
+    const body = new URLSearchParams({
+      username: $('email').value,
+      password: $('password').value
+    });
+    const response = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body
+    });
+
+    if (!response.ok) {
+      // Fallback to mock login if backend unreachable
+      if (response.status === 404 || response.status === 0) {
+        mockMode = true;
+        const role = $('email').value.includes('admin') ? 'admin' : 'user';
+        token = 'mock-token-' + Date.now();
+        currentUser = { username: $('email').value, role: role };
+        localStorage.setItem('athenaeum_token', token);
+        localStorage.setItem('athenaeum_user', JSON.stringify(currentUser));
+        $('auth-card').classList.add('hidden');
+        $('user-name').textContent = currentUser.username + ' · ' + currentUser.role;
+        showToast('Mock login successful (backend unreachable)', 'success');
+        loadAll();
+        btn.disabled = false;
+        return;
+      }
+      const err = await response.text();
+      $('auth-status').textContent = `Login failed: ${err}`;
+      showToast('Login failed', 'error');
+      btn.disabled = false;
+      return;
+    }
+
+    const data = await response.json();
+    token = data.access_token;
+    currentUser = { username: $('email').value, role: data.role || 'user' };
+    localStorage.setItem('athenaeum_token', token);
+    localStorage.setItem('athenaeum_user', JSON.stringify(currentUser));
+    $('auth-card').classList.add('hidden');
+    $('user-name').textContent = currentUser.username + ' · ' + currentUser.role;
+    showToast('Welcome, ' + currentUser.username + '!', 'success');
+    loadAll();
+  } catch (e) {
+    // Network error → mock
+    mockMode = true;
+    const role = $('email').value.includes('admin') ? 'admin' : 'user';
+    token = 'mock-token-' + Date.now();
+    currentUser = { username: $('email').value, role: role };
+    localStorage.setItem('athenaeum_token', token);
+    localStorage.setItem('athenaeum_user', JSON.stringify(currentUser));
+    $('auth-card').classList.add('hidden');
+    $('user-name').textContent = currentUser.username + ' · ' + currentUser.role;
+    showToast('Offline mode – using mock data', 'info');
+    loadAll();
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function logout() {
+  token = ''; currentUser = null;
+  localStorage.removeItem('athenaeum_token');
+  localStorage.removeItem('athenaeum_user');
+  $('auth-card').classList.remove('hidden');
+  $('user-name').textContent = '';
+  showToast('Logged out', 'info');
+}
+
+// ==================== PERSIST LOGIN ====================
+window.onload = function() {
+  const savedToken = localStorage.getItem('athenaeum_token');
+  const savedUser = localStorage.getItem('athenaeum_user');
+  if (savedToken && savedUser) {
+    token = savedToken;
+    currentUser = JSON.parse(savedUser);
+    $('auth-card').classList.add('hidden');
+    $('user-name').textContent = currentUser.username + ' · ' + currentUser.role;
+    loadAll();
+  }
+};
+
+function loadAll() {
+  loadDocs();
+  loadUsers();
+  loadConversations();
+  loadAnalytics();
+}
+
+// ==================== GENERIC API FETCH ====================
+async function apiFetch(endpoint, opts = {}) {
+  const url = API_BASE + endpoint;
+  const headers = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
+  if (opts.body && !(opts.body instanceof FormData)) {
+    opts.body = JSON.stringify(opts.body);
+  }
+  const response = await fetch(url, { ...opts, headers: { ...headers, ...opts.headers } });
+  if (response.status === 401) {
+    logout();
+    showToast('Session expired, please login again.', 'error');
+    throw new Error('Unauthorized');
+  }
+  return response;
+}
+
+// ==================== SEARCH ====================
+async function doSearch() {
+  if (!token) { $('search-results').innerHTML = `<div class="warn">Please login first</div>`; return; }
+  const q = $('q').value.trim();
+  if (!q) return;
+  $('search-results').innerHTML = `<div class="result skeleton" style="height:80px;"></div><div class="result skeleton" style="height:80px;"></div>`;
+  try {
+    const r = await apiFetch(`/search?q=${encodeURIComponent(q)}`);
+    if (!r.ok) throw new Error('Search failed');
+    const data = await r.json();
+    if (!data.results || !data.results.length) {
+      $('search-results').innerHTML = `<div class="warn">No results found.</div>`;
+      return;
+    }
+    $('search-results').innerHTML = data.results.map(x => `
+      <div class="result">
+        <div class="src"><i class="fas fa-file-alt"></i> ${x.document_title || 'Unknown'} · Score ${(x.score || 0).toFixed(3)}</div>
+        <div class="content">${x.content}</div>
+        <div class="confidence-meter">
+          <div class="confidence-bar"><div class="confidence-fill" style="width:${Math.min((x.score || 0)*100,100)}%"></div></div>
+          <div class="confidence-label">${(x.score*100).toFixed(0)}%</div>
+        </div>
+      </div>
+    `).join('');
+    showToast(`Found ${data.results.length} results`, 'success');
+  } catch (e) {
+    $('search-results').innerHTML = `<div class="warn">Search unavailable – using demo results.</div>
+      <div class="result"><div class="src">📄 Demo Doc · Score 0.892</div><div class="content">Mock result because backend is not reachable.</div></div>`;
+    showToast('Search in mock mode', 'info');
+  }
+}
+
+// ==================== CHAT ====================
+async function doChat() {
+  if (!token) { $('chat-log').innerHTML += `<div class="warn">Please login first</div>`; return; }
+  const text = $('chat-input').value.trim();
+  if (!text) return;
+  $('chat-input').value = '';
+  $('chat-log').innerHTML += `<div class="msg user">${text}</div><div class="msg assistant" id="thinking"><div class="skeleton" style="height:20px; margin-bottom:8px;"></div><div class="skeleton" style="height:20px; width:80%;"></div></div>`;
+  try {
+    const r = await apiFetch('/chat', { method: 'POST', body: { query: text } });
+    const t = $('thinking'); if (t) t.remove();
+    if (!r.ok) throw new Error('Chat failed');
+    const data = await r.json();
+    const cites = (data.citations || []).map(c => `<span class="citation-tag">[${c.index}] ${c.document_title}</span>`).join('');
+    $('chat-log').innerHTML += `
+      <div class="msg assistant">
+        ${data.answer || 'No answer generated.'}
+        <small><span class="citations">${cites}</span><span>· Confidence: ${(data.confidence*100).toFixed(0)}%</span><span>· ${data.latency_ms || 0}ms</span></small>
+      </div>
+    `;
+    if (!conversations.find(c => c.id === data.conversation_id)) {
+      conversations.unshift({ id: data.conversation_id || Date.now(), title: text.substring(0,40)+'...', created_at: new Date().toISOString() });
+      renderConversations();
+    }
+    showToast('Answer generated', 'success');
+  } catch (e) {
+    const t = $('thinking'); if (t) t.remove();
+    $('chat-log').innerHTML += `<div class="msg assistant">I'm sorry, I couldn't process your request right now. (Mock mode)</div>`;
+    showToast('Chat in mock mode', 'info');
+  }
+  $('chat-log').scrollTop = $('chat-log').scrollHeight;
+}
+
+// ==================== DOCUMENTS CRUD ====================
+async function loadDocs() {
+  if (!token) return;
+  try {
+    const r = await apiFetch('/documents');
+    if (!r.ok) throw new Error();
+    const docs = await r.json();
+    renderDocList(docs);
+  } catch (e) {
+    renderDocList([
+      { id: 'mock1', title: 'Annual Report 2024.pdf', source_type: 'pdf', num_chunks: 42, status: 'active', tags: ['finance','annual'] },
+      { id: 'mock2', title: 'Employee Handbook.docx', source_type: 'docx', num_chunks: 28, status: 'active', tags: ['hr','policy'] },
+    ]);
+  }
+}
+function renderDocList(docs) {
+  const container = $('doc-list');
+  if (!docs.length) { container.innerHTML = `<div class="warn">No documents found.</div>`; return; }
+  container.innerHTML = `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Title</th><th>Type</th><th>Chunks</th><th>Status</th><th>Tags</th><th>Actions</th></tr></thead>
+      <tbody>${docs.map(d => `
+        <tr data-id="${d.id}">
+          <td><strong>${d.title || 'Untitled'}</strong></td>
+          <td><span class="label">${d.source_type || 'unknown'}</span></td>
+          <td>${d.num_chunks || 0}</td>
+          <td><span class="label" style="color:${d.status === 'active' ? 'var(--emerald)' : 'var(--muted)'}">${d.status || 'active'}</span></td>
+          <td>${(d.tags || []).map(t => `<span class="citation-tag">${t}</span>`).join(' ')}</td>
+          <td class="actions">
+            <button class="edit" onclick="editDoc('${d.id}')"><i class="fas fa-edit"></i></button>
+            <button class="delete" onclick="deleteDoc('${d.id}')"><i class="fas fa-trash-alt"></i></button>
+          </td>
+        </tr>
+      `).join('')}</tbody>
+    </table></div>
+  `;
+}
+function filterDocList() {
+  const filter = $('doc-filter').value.toLowerCase();
+  document.querySelectorAll('#doc-list tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+  });
+}
+
+// ==================== FIXED UPLOAD FUNCTION ====================
+async function uploadDoc() {
+  if (!token) { alert('Please login first'); return; }
+  const file = $('file').files[0];
+  if (!file) { alert('Select a file first'); return; }
+  
+  $('upload-status').innerHTML = '<div class="warn">⏳ Uploading and indexing... please wait.</div>';
+  
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('tags', $('doc-tags') ? $('doc-tags').value : '');
+
+  try {
+    // Raw fetch - NO Content-Type header so the browser sets multipart boundary automatically
+    const r = await fetch('/api/v1/documents/upload', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+      body: fd
+    });
+    
+    const text = await r.text();
+    if (!r.ok) {
+      // Show the EXACT error from FastAPI instead of hiding it
+      $('upload-status').innerHTML = `<div class="warn">❌ Backend Error (${r.status}): ${text}</div>`;
+      console.error("Backend Error:", text);
+      return;
+    }
+    
+    const data = JSON.parse(text);
+    $('upload-status').innerHTML = `<div class="success">✅ Indexed: ${data.title} (${data.chunks} chunks)</div>`;
+    showToast('Document indexed', 'success');
+    loadDocs();
+    $('file').value = '';
+  } catch (e) {
+    $('upload-status').innerHTML = `<div class="warn">❌ Network Error: ${e.message}</div>`;
+    console.error(e);
+  }
+}
+
+function editDoc(id) { editingDocId = id; openModal('editDocModal'); }
+async function saveDocEdit() {
+  const payload = { title: $('edit-doc-title').value, tags: $('edit-doc-tags').value.split(',').map(s=>s.trim()).filter(Boolean), status: $('edit-doc-status').value };
+  try {
+    const r = await apiFetch(`/documents/${editingDocId}`, { method: 'PUT', body: payload });
+    if (!r.ok) throw new Error();
+    showToast('Document updated', 'success');
+    closeModal('editDocModal');
+    loadDocs();
+  } catch { showToast('Update failed (mock)', 'info'); loadDocs(); }
+}
+async function deleteDoc(id) {
+  if (!confirm('Delete this document?')) return;
+  try {
+    const r = await apiFetch(`/documents/${id}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error();
+    showToast('Document deleted', 'success');
+    loadDocs();
+  } catch { showToast('Delete mock', 'info'); loadDocs(); }
+}
+
+// ==================== USERS CRUD ====================
+async function loadUsers() {
+  if (!token) return;
+  try {
+    const r = await apiFetch('/users');
+    if (!r.ok) throw new Error();
+    const users = await r.json();
+    renderUserList(users);
+  } catch {
+    renderUserList([
+      { id: 'u1', username: 'admin', role: 'admin', created_at: new Date().toISOString() },
+      { id: 'u2', username: 'user1', role: 'user', created_at: new Date().toISOString() },
+    ]);
+  }
+}
+function renderUserList(users) {
+  const container = $('user-list');
+  if (!users.length) { container.innerHTML = `<div class="warn">No users.</div>`; return; }
+  container.innerHTML = `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Username</th><th>Role</th><th>Created</th><th>Actions</th></tr></thead>
+      <tbody>${users.map(u => `
+        <tr data-id="${u.id}">
+          <td><strong>${u.username}</strong></td>
+          <td><span class="label">${u.role}</span></td>
+          <td>${new Date(u.created_at).toLocaleDateString()}</td>
+          <td class="actions">
+            <button class="edit" onclick="editUser('${u.id}')"><i class="fas fa-user-cog"></i></button>
+            <button class="delete" onclick="deleteUser('${u.id}')"><i class="fas fa-trash-alt"></i></button>
+          </td>
+        </tr>
+      `).join('')}</tbody>
+    </table></div>
+  `;
+}
+async function createUser() {
+  const username = $('new-username').value.trim();
+  const password = $('new-password').value.trim();
+  const role = $('new-role').value;
+  if (!username || !password) { showToast('Username & password required', 'error'); return; }
+  try {
+    const r = await apiFetch('/users', { method: 'POST', body: { username, password, role } });
+    if (!r.ok) throw new Error();
+    showToast('User created', 'success');
+    loadUsers();
+    $('new-username').value = ''; $('new-password').value = '';
+  } catch { showToast('User creation mock', 'info'); loadUsers(); }
+}
+function editUser(id) { editingUserId = id; openModal('editUserModal'); }
+async function saveUserEdit() {
+  const role = $('edit-user-role').value;
+  try {
+    const r = await apiFetch(`/users/${editingUserId}`, { method: 'PUT', body: { role } });
+    if (!r.ok) throw new Error();
+    showToast('User updated', 'success');
+    closeModal('editUserModal');
+    loadUsers();
+  } catch { showToast('Update mock', 'info'); loadUsers(); }
+}
+async function deleteUser(id) {
+  if (!confirm('Delete this user?')) return;
+  try {
+    const r = await apiFetch(`/users/${id}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error();
+    showToast('User deleted', 'success');
+    loadUsers();
+  } catch { showToast('Delete mock', 'info'); loadUsers(); }
+}
+
+// ==================== CONVERSATIONS ====================
+async function loadConversations() {
+  if (!token) return;
+  try {
+    const r = await apiFetch('/conversations');
+    if (!r.ok) throw new Error();
+    conversations = await r.json();
+  } catch {
+    conversations = [
+      { id: 'c1', title: 'What is RAG?', created_at: new Date().toISOString() },
+      { id: 'c2', title: 'How to index PDFs?', created_at: new Date().toISOString() },
+    ];
+  }
+  renderConversations();
+  renderConversationList();
+}
+function renderConversations() {
+  $('conversations-list').innerHTML = conversations.map(c => `
+    <div class="conversation-item" onclick="loadConversation('${c.id}')">
+      <div class="title">${c.title}</div>
+      <div class="meta">${new Date(c.created_at).toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+function renderConversationList() {
+  const container = $('conversation-list');
+  if (!conversations.length) { container.innerHTML = `<div class="warn">No conversations.</div>`; return; }
+  container.innerHTML = conversations.map(c => `
+    <div class="result" style="display:flex; justify-content:space-between; align-items:center;">
+      <div><div class="src"><i class="fas fa-comment"></i> ${c.title}</div><div class="content" style="font-size:12px;color:var(--muted);">${new Date(c.created_at).toLocaleString()}</div></div>
+      <button class="btn btn-danger btn-sm" onclick="deleteConversation('${c.id}')"><i class="fas fa-trash-alt"></i></button>
+    </div>
+  `).join('');
+}
+function loadConversation(id) { switchTab('chat'); showToast('Loading conversation…', 'info'); }
+async function deleteConversation(id) {
+  if (!confirm('Delete this conversation?')) return;
+  try {
+    const r = await apiFetch(`/conversations/${id}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error();
+    showToast('Conversation deleted', 'success');
+    loadConversations();
+  } catch { showToast('Delete mock', 'info'); loadConversations(); }
+}
+function toggleConversations() { $('conversations-panel').classList.toggle('open'); }
+
+// ==================== ANALYTICS ====================
+async function loadAnalytics() {
+  if (!token) return;
+  try {
+    const r = await apiFetch('/analytics/dashboard');
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    renderAnalytics(data);
+  } catch {
+    // Mock data as per the user's screenshot
+    renderAnalytics({
+      total_documents: 2,
+      total_chunks: 83,
+      total_queries: 3,
+      avg_latency_ms: 56158.14,
+      hallucination_rate: 0.333
+    });
+    showToast('Analytics in mock mode', 'info');
+  }
+}
+function renderAnalytics(data) {
+  $('metrics').innerHTML = `
+    <div class="stat"><div class="num">${data.total_documents || 0}</div><div class="lbl">Documents</div></div>
+    <div class="stat"><div class="num">${data.total_chunks || 0}</div><div class="lbl">Chunks</div></div>
+    <div class="stat"><div class="num">${data.total_queries || 0}</div><div class="lbl">Queries</div></div>
+    <div class="stat"><div class="num">${(data.avg_latency_ms || 0).toFixed(2)}</div><div class="lbl">Avg Latency (ms)</div></div>
+    <div class="stat"><div class="num">${((data.hallucination_rate || 0)*100).toFixed(1)}%</div><div class="lbl">Hallucination Rate</div></div>
+  `;
+}
+
+// ==================== MODALS ====================
+function openModal(id) { $(id).classList.add('open'); }
+function closeModal(id) { $(id).classList.remove('open'); }
+
+// ==================== TAB NAVIGATION ====================
+function switchTab(tabName) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`nav button[data-tab="${tabName}"]`);
+  if (btn) btn.classList.add('active');
+  ['search','chat','documents','users','conversations','analytics'].forEach(t => {
+    $(`tab-${t}`).classList.toggle('hidden', t !== tabName);
+  });
+  if (tabName === 'documents') loadDocs();
+  if (tabName === 'users') loadUsers();
+  if (tabName === 'conversations') loadConversations();
+  if (tabName === 'analytics') loadAnalytics();
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+
+// ==================== COMMAND PALETTE ====================
+const commands = [
+  { icon: 'fa-search', label: 'Search Documents', action: () => switchTab('search') },
+  { icon: 'fa-comment-dots', label: 'Start New Chat', action: () => { $('chat-log').innerHTML = ''; switchTab('chat'); } },
+  { icon: 'fa-upload', label: 'Upload Document', action: () => switchTab('documents') },
+  { icon: 'fa-users', label: 'Manage Users', action: () => switchTab('users') },
+  { icon: 'fa-history', label: 'View Conversations', action: () => switchTab('conversations') },
+  { icon: 'fa-chart-bar', label: 'Analytics Dashboard', action: () => switchTab('analytics') },
+  { icon: 'fa-sync-alt', label: 'Refresh All Data', action: () => { loadAll(); showToast('Refreshed', 'success'); } },
+  { icon: 'fa-sign-out-alt', label: 'Logout', action: logout },
+];
+function openCommandPalette() { $('command-palette').classList.add('open'); $('command-input').focus(); renderCommands(commands); }
+function closeCommandPalette() { $('command-palette').classList.remove('open'); }
+function renderCommands(cmds) {
+  $('command-list').innerHTML = cmds.map((c, i) => `
+    <div class="command-item" onclick="executeCommand(${i})">
+      <div class="icon"><i class="fas ${c.icon}"></i></div>
+      <div>${c.label}</div>
+    </div>
+  `).join('');
+}
+function filterCommands(query) {
+  const filtered = commands.filter(c => c.label.toLowerCase().includes(query.toLowerCase()));
+  renderCommands(filtered);
+}
+function executeCommand(index) { commands[index].action(); closeCommandPalette(); }
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCommandPalette(); }
+  if (e.key === 'Escape') { closeCommandPalette(); $('conversations-panel').classList.remove('open'); }
+});
+document.addEventListener('click', (e) => {
+  if (!$('command-palette').contains(e.target) && !e.target.closest('.fab')) closeCommandPalette();
+});
+
+console.log('Athenaeum UI ready.');
+</script>
+</body>
+</html>
